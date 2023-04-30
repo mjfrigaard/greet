@@ -58,7 +58,7 @@ Also—the same issue arises in `shinytest2` when using app driver in console:
 5 directories, 7 files
 ```
 
-And the contents of `test-shinytest2.R` containing:
+2. And the contents of `test-shinytest2.R` containing:
 
 ``` r
 library(shinytest2)
@@ -71,7 +71,7 @@ test_that("{shinytest2} recording: hello-barret", {
 })
 ```
 
-When I attempt to run the following in the console, 
+3. When I attempt to run the following in the console, 
 
 ```r
 app <- AppDriver$new(name = "hello-barret", height = 483, width = 862)
