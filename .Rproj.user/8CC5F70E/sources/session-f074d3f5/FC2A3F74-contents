@@ -1,0 +1,13 @@
+{
+  "input": {
+    "greet": 1,
+    "name": "Barret"
+  },
+  "output": {
+    "first_letter": "The first letter in your is b!",
+    "greeting": "Hello Barret!"
+  },
+  "export": {
+
+  }
+}

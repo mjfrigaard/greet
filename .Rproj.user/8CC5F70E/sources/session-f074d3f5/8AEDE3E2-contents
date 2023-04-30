@@ -1,0 +1,238 @@
+---
+title: "Title"
+author: "Martin Frigaard"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+# Getting Started with {`shinytest2`} Part I
+
+> `shinytest2` is a wonderful package to help do regression testing for your Shiny applications. And we're going to perform this regression testing inside `testthat`. And it's not regression testing like linear model or something like that. This is a consistent behavior over time, and so we do not want it to regress, or we do not want it to change. That's what I mean for regression testing.
+
+> Before we get into `shinytest2` and how it works, I just want to do this demo app. This demo app is short, a little toy example.
+
+## Overview of the demo app
+
+``` r
+library(shiny)
+library(magrittr)
+
+ui <- fluidPage(
+  textInput("name", "what is your name"),
+  actionButton("greet", "Greet"),
+  textOutput("greeting"),
+  textOutput("first_letter")
+)
+
+server <- function(input, output, session) {
+    
+  output$greeting <- renderText({
+    req(input$name)
+    paste0("Hello ", input$name, "!")
+  }) %>% 
+    bindEvent({input$greet})
+    
+  first_letter <- reactive({
+    req(input$name)
+    tolower(stringr::str_extract(input$name, "^."))
+  }) %>% 
+    bindEvent({input$greet})
+  
+  output$first_letter <- renderText({
+    paste0("The first letter in your is ", first_letter(), "!")
+  })
+  
+}
+
+shinyApp(ui, server)
+```
+
+> We have a `fluidPag()` that has a `textInput()`. It's like what's your name. We can fill it out. And then we also have an `actionButton()` of `"greet"`, the text `"Greet"`. And then we have two `textOutput()`s. One is a greeting, like `"Hello, Barrett!"` And then the other one is what is the first letter in your name. And it's neat, like it's short little app.
+
+> So if I have it on here, I have `"Barrett"`
+
+![](img/greet_01.png){width="3in"}
+
+> I click `Greet`. We get, `"Hello Barrett!"`
+
+![](img/greet_02.png){width="3in"}
+
+> And if I'm here, we could do like `"Shinytest2"`
+
+![](img/greet_03.png){width="3in"}
+
+> `"What is your name?` `"Shinytest2."`
+
+![](img/greet_04.png){width="3in"}
+
+> `Greet`, `"Hello Shinytest2."` The first letter is `S`.
+> 
+> So it works. It's a nice little app.
+> 
+> The app for the server-- what it does is we have a `renderText()` that requires the name and given a `Greet` click, we will say, `"Hello"` name. And then for the first letter calculation, we require a name, and we extract the first character of the name. And we send it `tolower()`. And we will bind all of that calculations to when the `Greet` button is clicked. Given this first letter, whenever it updates, we will then call `renderText()` and say the first letter in your name is this first letter. Awesome.
+> 
+> So let's imagine that I have---well I have now created this app, or I am working on a team, and I want to make sure that behaviors are consistent. And tests are worth so much, because you don't necessarily need to communicate that because the test is there. And if the test breaks, then we can figure out what's happening.
+> 
+> And this also allows you to do other things like sweeping code changes. Like what if I want to change the guts of how first letter is calculated. I know this is a small function, but it could be much more complicated. And having tests allow you to do these sweeping changes with confidence, otherwise you just look out and go, no, that's close enough. I don't know. I hope I covered everything. At least with tests, we can say all of the tests pass. And if you're missing something, we can add them in and then make your test more robust.
+
+# Recording tests
+
+When you run `record_test()`, it opens up Running `record_test()` your application in the Chrome browser or Chromium based browser. Mine by default is set to Chrome. 
+
+![](img/chromium.png){width="6in"}
+
+It'll have your app in this IFrame. And on the sidebar is actually the recorder. And we can see there's some buttons to call **Expect Shiny** values or **Expect screenshot**. And then there's also an area of all the code that will be executed later that is able to replay your recording. So let's make a recording:
+
+![](img/shinytest2.png){width="6in"}
+
+### Input, output, expect shiny values
+
+This is 
+
+> "*What is your name?*"*
+
+My name is `"Barrett"`
+
+So let's `Greet` Barrett. And it'll say, 
+
+> *"Hello Barret! The first letter in your name is b!"*
+
+And we can see that I set inputs, name is **`"Barrett"`**. And then I clicked the `Greet` button, and then an output value is updated. Awesome.
+
+![](img/record_test_01.png){width="6in"}
+
+So I can test this or save this as "`hello-barrett`" because that is the name that I used and just for my reference. And I'll click-- oh, but I need to make sure first before-- because I can't save right away:
+
+> *So I need to say, **Expect Shiny values**. And this will keep track-- **the expect values will keep track of all your input, output, and exported values.** And exported values, we'll get to in another video. So once we have at least one expectation, we can then click **Save test and exit**.*
+
+![](img/expect_shiny_values.png){width="6in"}
+
+This will save the test and then immediately run the test-- play back the test again. And there are some warnings, because we have some new snapshots. But that's OK. And it looks like it all passed, because there's also nothing to say that the snapshots would fail. So let's take a look at what was created.
+
+``` r
+• Saving test runner: tests/testthat.R
+• Saving test file: tests/testthat/test-shinytest2.R
+✔ Adding 'shinytest2::load_app_env()' to 'tests/testthat/setup-shinytest2.R'
+• Modify '/Users/mjfrigaard/projects/dev/greet/tests/testthat/test-shinytest2.R'
+• Running recorded test: tests/testthat/test-shinytest2.R
+✔ | F W S  OK | Context
+✔ |   2     1 | shinytest2 [2.5s]                                                                  
+────────────────────────────────────────────────────────────────────────────────
+Warning (test-shinytest2.R:7:3): {shinytest2} recording: hello-barret
+Adding new file snapshot: 'tests/testthat/_snaps/hello-barret-001_.png'
+
+Warning (test-shinytest2.R:7:3): {shinytest2} recording: hello-barret
+Adding new file snapshot: 'tests/testthat/_snaps/hello-barret-001.json'
+────────────────────────────────────────────────────────────────────────────────
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 2.9 s
+
+[ FAIL 0 | WARN 2 | SKIP 0 | PASS 1 ]
+```
+
+# `tests/` folder
+
+...and then the `tests` folder, it will be a sibling to that.  We'll go inside that in a second. 
+
+```
+tests
+├── testthat
+│   ├── _snaps
+│   │   └── shinytest2
+│   │       ├── hello-barret-001.json
+│   │       └── hello-barret-001_.png
+│   ├── setup-shinytest2.R
+│   └── test-shinytest2.R
+└── testthat.R
+
+4 directories, 5 files
+```
+
+## `tests/testthat.R`
+
+And in there, we will have a `testthat.R` which internally, it just has `shinytest2` test app. 
+
+``` r
+shinytest2::test_app()
+```
+
+And then next to the `testthat.R` is a `testthat` folder. There there's three parts here. The first part is the `_snaps` folder.
+
+
+
+## `setup-shinytest2.R`
+
+The second one is the `setup.R`. `setup.R` is there for you when your little more complicated apps where you have an R folder or you have `global.R` your Shiny application. We load all of those information inside `setup.R`, so that your tests have that information available. 
+
+``` r
+# Load application support files into testing environment
+shinytest2::load_app_env()
+```
+
+## `test-shinytest2.R`
+
+And the last one is `test-shinytest2`. 
+
+``` r
+library(shinytest2)
+
+test_that("{shinytest2} recording: hello-barret", {
+  app <- AppDriver$new(name = "hello-barret", height = 483, width = 862)
+  app$set_inputs(name = "Barret")
+  app$click("greet")
+  app$expect_values()
+})
+```
+
+This is the default file name for recordings. And it'll say `shinytest2` recording-- *`"whatever name you gave"`*. So if we remember from the recording that we made, I created a new app. It gives the same height and width of the recording window. That way when it replays, it's under the same height and width. We then say `app$set_inputs`. I typed in `"Barrett"` for the name. I then clicked the `Greet` button, and then we called `app$expect_values`. 
+
+Expect values is actually a wrapper around `teststhat`, `expect_snapshot_file()`. And this file will contain a `JSON` representation of your input, output, and export values. And that is stored in the `_snaps` folder. 
+
+So we will open up `_snaps`. We'll open up `shinytest2`, because that is the name of the file, `shinytest2`. So that name. And then there was the first JSON file that was created. 
+
+```
+tests/testthat/_snaps
+└── shinytest2
+    ├── hello-barret-001.json
+    └── hello-barret-001_.png
+2 directories, 2 files
+```
+
+And this one if we click it, has my `input`, `output`, and `export`. 
+
+``` JSON
+{
+  "input": {
+    "greet": 1,
+    "name": "Barret"
+  },
+  "output": {
+    "first_letter": "The first letter in your is b!",
+    "greeting": "Hello Barret!"
+  },
+  "export": {
+
+  }
+}
+```
+
+So my inputs is at the time of calling `expect_values()`, which was after setting an input and after clicking `Greet` button. We have input of `"greet": 1` for one time to click the button.
+
+![](img/record_test_03.png){width="3in"}
+
+And name was `"Barrett"`. The output was `"first_letter"` was, `"The first letter your name is b!"` And the greeting is, `"Hello Barrett!"` We didn't export any test values yet. But we'll get into that in a later video. 
+
+
+So this is our test. This is awesome. We can, if we want, change the height and width. We can add more tests. This is our test file to work with. 
+
+### Image files
+
+A note on `.png` files created during testing: 
+
+> *As a side note, you might notice that there's a PNG file here created next to the JSON file. This is there, because images typically are fairly brittle. And we don't like to use them if we can help it, because there's lots of things outside of our control that we can't account for, such as if the R version updates, or let's say you change your version of DT, or let's say you update your system font. There's many different things that are outside of Shiny or R that are not in your control. And screenshots will fail if this happens. And no one likes to see that, but that'll happen. So if you can, try to do everything as much as possible using your JSON or your values, and try to just test the things that you own. Unless you're a package developer, then by all means, we need to start taking pictures and making sure things render properly. But otherwise, we can give that responsibility back to the package developers, not us as app developers.* 
+
+
+But the image is there to take us a snapshot to let us know what the app look like when we called expect values. So let's do, `hello-barrett-001`. And this will open up my application. And we can see that Chromote believes the app looked like this where it says, "What is your name?" "Barret." Greet. "Hello Barret!" Your first letter name is b. Awesome. That worked out great. Debugging with shinytest2 So one of the things that we can do interactively is we can take our app, and we can run it in the console as long as we're sitting in our working directory of our Shiny application. This uses the app driver object. And this object is something that drives shinytest2. And it runs your Shiny application in the background. And it also does your communication with Chromote. And so it handles all of that. And we can set our inputs. We can also retrieve inputs, and outputs, or different values, and click many different things. So if we do this, one of the things that I really enjoy is that we can call `app$view`, and view will open up a web page Using `app$view()` to open a visual representation of a headless browser of our headless Chrome browser. And I think this is really, really neat, because now it's not a black box as to what is happening. 
+
+So now I have my app. And this is what Chromote is representing as-- what is happening within the app. So if we actually just step through this code when in time, we can actually see the app update to the left. So we can call `set_inputs(name="Barret")`. Click `Greet`. And then if I wanted to, I could call `expect_values`, or I could even say `app$get_values`. And this will return all the values. Or if I wanted to do something like just a particular one, I could say `app$get_values(output = "greeting")`. And it's just that one particular value. Or since if it's just your one value, you can say get value and it'll turn back the regular result. So it's very exciting. You can debug your headless tiny application, and headless Chrome instance, and your Shiny application all at the same time. Save the code that you want. And then we can replay them afterwards. Or just going in the top right and saying, run tests. You will load up. We'll get there and eventually pass one for that `expect_values`, because that's the only expectation in this whole test file. Test complete. Perfect. 
