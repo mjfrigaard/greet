@@ -2,10 +2,6 @@
 
 [HackMD](https://hackmd.io/@mfrigaard/Syag4ij72)
 
-Hi there, 
-
-Not sure if this is the same issue, but I ran into a similar error while running tests in `shinytest2` recently (and landed here when looking for a fix). 
-
 1. I installed Chromium via [homebrew](https://formulae.brew.sh/cask/chromium) and dev version of `chromote`
 
 ``` r
@@ -28,7 +24,7 @@ library(chromote)
 
 ``` r
 chromote::find_chrome()
-[1] "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+[1] "/Applications/Chromium.app/Contents/MacOS/Chromium"
 ```
 
 3. Created new session 
@@ -83,8 +79,6 @@ app$view()
 ```
 
 ![](https://hackmd.io/_uploads/ByOQEso7n.png)
-
-My apologies is this issue is redundant and addressed elsewhere! Thank you for your hard work on these amazing tools!
 
 ``` r
 sessioninfo::session_info()
